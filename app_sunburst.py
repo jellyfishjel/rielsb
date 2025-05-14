@@ -3,30 +3,33 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Sunburst Chart", layout="centered")
-
-st.title("📊 Sunburst Chart: Field → SAT → GPA → Job Offers")
-
 # Đọc dữ liệu
-df = pd.read_excel("education_career_success.xlsx")
+@st.cache_data
+def load_data():
+    df = pd.read_excel("education_career_success.xlsx")
+    return df
 
-# Nhóm điểm SAT
-sat_bins = [0, 1000, 1200, 1400, 1600]
-sat_labels = ["<1000", "1000–1199", "1200–1399", "1400+"]
-df["SAT_Band"] = pd.cut(df["SAT_Score"], bins=sat_bins, labels=sat_labels)
+df = load_data()
 
-# Nhóm GPA
-gpa_bins = [0, 2.5, 3.0, 3.5, 4.0]
-gpa_labels = ["<2.5", "2.5–3.0", "3.0–3.5", "3.5–4.0"]
-df["GPA_Band"] = pd.cut(df["University_GPA"], bins=gpa_bins, labels=gpa_labels)
+st.title("🎓📈 Gender & Career Path Sunburst")
+st.markdown("Phân tích mối liên hệ giữa **giới tính**, **cấp bậc công việc**, **ngành học** và **mức lương khởi điểm**.")
 
 # Tạo biểu đồ sunburst
 fig = px.sunburst(
     df,
-    path=["Field_of_Study", "SAT_Band", "GPA_Band"],
-    values="Job_Offers",
-    title="Field of Study → SAT Band → GPA Band → Job Offers"
+    path=["Gender", "Current_Job_Level", "Field_of_Study"],
+    values=None,  # Không cộng dồn — màu thể hiện giá trị trung bình
+    color="Starting_Salary",
+    color_continuous_scale="RdBu",
+    color_continuous_midpoint=df["Starting_Salary"].mean(),
+    title="Sunburst Chart - Starting Salary theo Giới tính, Cấp bậc Công việc và Ngành học"
 )
-fig.update_traces(textinfo="label+percent parent")
 
+fig.update_traces(maxdepth=3)
+
+# Hiển thị biểu đồ
 st.plotly_chart(fig, use_container_width=True)
+
+# Hiển thị bảng dữ liệu (tuỳ chọn)
+with st.expander("📊 Xem dữ liệu gốc"):
+    st.dataframe(df)
