@@ -1,3 +1,15 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+# Đọc dữ liệu
+@st.cache_data
+def load_data():
+    file_path = "education_career_success.xlsx"
+    df = pd.read_excel(file_path)
+    return df
+
+df = load_data()
 
 st.title("🚀 Sunburst Chart: Tác động của Khởi nghiệp đến Nghề nghiệp")
 
@@ -6,13 +18,8 @@ Phân tích mối quan hệ giữa:
 - **Tình trạng khởi nghiệp**
 - **Cấp độ công việc hiện tại**
 - **Ngành học**
-và các chỉ số như **Mức lương khởi điểm** hoặc **Mức độ hài lòng nghề nghiệp**.
-""")
-
-value_option = st.selectbox(
-    "Chọn chỉ số để phân tích:",
-    ["Starting_Salary", "Career_Satisfaction"]
 )
+
 
 fig = px.sunburst(
     df,
