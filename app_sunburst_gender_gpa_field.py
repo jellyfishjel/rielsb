@@ -20,20 +20,18 @@ value_option = st.selectbox(
     ["Starting_Salary", "Career_Satisfaction"]
 )
 
-# Tạo biểu đồ sunburst
 fig = px.sunburst(
     df,
     path=["Field_of_Study", "Current_Job_Level", "Entrepreneurship"],
-    values=None,  # Không cộng, ta dùng avg ở màu
+    values=None,
     color=value_option,
     color_continuous_scale="RdBu",
     color_continuous_midpoint=df[value_option].mean(),
     title=f"Sunburst Chart - {value_option} theo ngành, cấp độ công việc và khởi nghiệp"
 )
 
+# Giới hạn hiển thị mặc định ở 2 cấp (Field_of_Study, Current_Job_Level)
+fig.update_traces(maxdepth=2)
+
 # Hiển thị biểu đồ
 st.plotly_chart(fig, use_container_width=True)
-
-# Hiển thị bảng dữ liệu (tuỳ chọn)
-with st.expander("📊 Xem dữ liệu gốc"):
-    st.dataframe(df)
