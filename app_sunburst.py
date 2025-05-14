@@ -20,7 +20,7 @@ fig = px.sunburst(
     path=["Current_Job_Level", "Field_of_Study"],
     values=None,  # Không cộng dồn — màu thể hiện giá trị trung bình
     color="Starting_Salary",
-    color_continuous_scale="Turbo",
+    color_continuous_scale="Viridis",
     color_continuous_midpoint=df["Starting_Salary"].mean(),
     title="Sunburst Chart - Starting Salary theo Giới tính, Cấp bậc Công việc và Ngành học"
 )
