@@ -25,7 +25,7 @@ fig = px.sunburst(
     title="Sunburst Chart - Starting Salary theo Giới tính, Cấp bậc Công việc và Ngành học"
 )
 
-fig.update_traces(maxdepth=1)
+fig.update_traces(maxdepth=2)
 
 # Hiển thị biểu đồ
 st.plotly_chart(fig, use_container_width=True)
