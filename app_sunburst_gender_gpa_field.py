@@ -2,35 +2,28 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Đọc dữ liệu
+st.set_page_config(page_title="Sunburst Drilldown", layout="centered")
+
+# Tải dữ liệu
 @st.cache_data
 def load_data():
-    file_path = "education_career_success.xlsx"
-    df = pd.read_excel(file_path)
+    df = pd.read_excel("education_career_success.xlsx")
+    bins = [0, 1000, 1300, df["SAT_Score"].max()]
+    labels = ["Low", "Medium", "High"]
+    df["SAT_Score_Group"] = pd.cut(df["SAT_Score"], bins=bins, labels=labels, include_lowest=True)
     return df
 
 df = load_data()
 
-st.title("🚀 Sunburst Chart: Tác động của Khởi nghiệp đến Nghề nghiệp")
+# Tiêu đề ứng dụng
+st.title("🎓 Sunburst Drilldown: Gender → Field → SAT Group")
 
-st.markdown("""
-Phân tích mối quan hệ giữa:
-- **Tình trạng khởi nghiệp**
-- **Cấp độ công việc hiện tại**
-- **Ngành học**
-""")
-
-
+# Hiển thị biểu đồ
 fig = px.sunburst(
     df,
-    path=["Entrepreneurship", "Current_Job_Level", "Field_of_Study"],
-    values=None,
-    color=value_option,
-    color_continuous_scale="RdBu",
-    color_continuous_midpoint=df[value_option].mean(),
-    title=f"Sunburst Chart - {value_option} theo Khởi nghiệp, Cấp độ công việc và Ngành học"
+    path=["Gender", "Field_of_Study", "SAT_Score_Group"],
+    maxdepth=2,  # chỉ hiện 2 vòng đầu
 )
 
-fig.update_traces(maxdepth=2)
-
+fig.update_layout(margin=dict(t=10, l=10, r=10, b=10))
 st.plotly_chart(fig, use_container_width=True)
