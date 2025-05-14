@@ -17,7 +17,7 @@ def load_data():
 
 df = load_data()
 
-st.title("🎓👥 Salary Analysis theo Age Group, Job Level, Field of Study")
+st.title("🎓👥 Job Offers Analysis theo Age Group, Job Level, Field of Study")
 st.markdown("Khám phá mức lương khởi điểm theo **nhóm tuổi**, **cấp bậc công việc** và **ngành học**.")
 
 # Chọn thang màu
@@ -30,12 +30,12 @@ color_scale = st.selectbox(
 # Biểu đồ sunburst
 fig = px.sunburst(
     df,
-    path=["Age_Group", "Current_Job_Level", "Field_of_Study"],
+    path=["Age_Group", "Field_of_Study"],
     values=None,
-    color="Starting_Salary",
+    color="Job_Offers",
     color_continuous_scale=color_scale,
-    color_continuous_midpoint=df["Starting_Salary"].mean(),
-    title="Sunburst Chart - Starting Salary theo Nhóm Tuổi → Cấp bậc Công việc → Ngành học"
+    color_continuous_midpoint=df["Job_Offers"].mean(),
+    title="Sunburst Chart - Job_Offers theo Nhóm Tuổi → Cấp bậc Công việc → Ngành học"
 )
 
 fig.update_traces(maxdepth=2)
