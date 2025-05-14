@@ -22,7 +22,7 @@ value_option = st.selectbox(
 
 fig = px.sunburst(
     df,
-    path=["Field_of_Study", "Current_Job_Level", "Entrepreneurship"],
+    path=["Entrepreneurship", "Current_Job_Level", "Field_of_Study"]
     values=None,
     color=value_option,
     color_continuous_scale="RdBu",
