@@ -23,7 +23,7 @@ value_option = st.selectbox(
 # Tạo biểu đồ sunburst
 fig = px.sunburst(
     df,
-    path=["Entrepreneurship", "Current_Job_Level", "Field_of_Study"]
+    path=["Entrepreneurship", "Current_Job_Level", "Field_of_Study"],
     values=None,  # Không cộng, ta dùng avg ở màu
     color=value_option,
     color_continuous_scale="RdBu",
