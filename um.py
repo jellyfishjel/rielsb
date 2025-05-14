@@ -1,27 +1,33 @@
-import plotly.express as px
+import streamlit as st
 import pandas as pd
+import plotly.express as px
 
-# Giả sử bạn có một DataFrame
-df = pd.DataFrame({
-    'Category': ['A', 'B', 'C', 'A', 'B', 'C'],
-    'Value': [10, 20, 30, 40, 50, 60],
-    'Group': ['X', 'X', 'X', 'Y', 'Y', 'Y']
-})
+# Đọc dữ liệu
+@st.cache_data
+def load_data():
+    df = pd.read_excel("education_career_success.xlsx")
+    return df
 
-# Tính phần trăm cho mỗi nhóm
-df['Percentage'] = df['Value'] / df.groupby('Group')['Value'].transform('sum') * 100
+df = load_data()
 
-# Tạo biểu đồ với Plotly Express
-fig = px.bar(df, 
-             x='Category', 
-             y='Value', 
-             color='Group', 
-             text='Percentage', # Hiển thị phần trăm trên các ô
-             title='Bar Chart with Percentage',
-             labels={'Value': 'Total Value', 'Category': 'Category'})
+st.title("🔁 Career Path vs Soft Skills/Networking")
+st.markdown("Biểu đồ **Sunburst** theo thứ tự: **Cấp bậc công việc → Ngành học → Giới tính**, với màu sắc theo yếu tố **Soft Skills / Networking**.")
 
-# Tùy chỉnh để hiển thị phần trăm rõ ràng hơn
-fig.update_traces(texttemplate='%{text:.1f}%', textposition='inside', hoverinfo='y+text')
+# Tạo biểu đồ sunburst
+fig = px.sunburst(
+    df,
+    path=["Current_Job_Level", "Field_of_Study", "Gender"],
+    values=None,  # Tự động đếm
+    color="Soft_Skills_or_Networking",
+    color_discrete_sequence=px.colors.qualitative.Pastel,  # hoặc Vivid, Safe, Set3, v.v.
+    title="Sunburst Chart - Job Level → Field → Gender (Color = Soft Skills / Networking)"
+)
+
+fig.update_traces(maxdepth=3)
 
 # Hiển thị biểu đồ
-fig.show()
+st.plotly_chart(fig, use_container_width=True)
+
+# Hiển thị bảng dữ liệu gốc
+with st.expander("📊 Xem dữ liệu gốc"):
+    st.dataframe(df)
