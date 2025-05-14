@@ -3,24 +3,37 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Sunburst Chart", layout="centered")
-st.title("📊 Sunburst Chart: Gender → GPA Band → Field of Study")
-
 # Đọc dữ liệu
-df = pd.read_excel("education_career_success.xlsx")
+@st.cache_data
+def load_data():
+    df = pd.read_excel("education_career_success.xlsx")
+    return df
 
-# Nhóm GPA theo mốc tròn
-gpa_bins = [0, 2.0, 2.5, 3.0, 3.5, 4.0]
-gpa_labels = ["≤2.0", "2.0–2.5", "2.5–3.0", "3.0–3.5", "3.5–4.0"]
-df["GPA_Band"] = pd.cut(df["University_GPA"], bins=gpa_bins, labels=gpa_labels)
+df = load_data()
 
-# Tạo biểu đồ Sunburst
+st.title("🎓📈 Career Outcomes Sunburst Explorer")
+st.markdown("Phân tích mối liên hệ giữa **ngành học**, **cấp bậc công việc**, **khởi nghiệp** và **mức lương khởi điểm** hoặc **mức độ hài lòng nghề nghiệp**.")
+
+# Lựa chọn giá trị đo
+value_option = st.selectbox(
+    "Chọn chỉ số để hiển thị:",
+    ["Starting_Salary", "Career_Satisfaction"]
+)
+
+# Tạo biểu đồ sunburst
 fig = px.sunburst(
     df,
-    path=["Gender", "GPA_Band", "Field_of_Study"],
-    values=None,  # tự động đếm số lượng
-    title="Sunburst Chart: Gender → GPA Band → Field of Study"
+    path=["Field_of_Study", "Current_Job_Level", "Entrepreneurship"],
+    values=None,  # Không cộng, ta dùng avg ở màu
+    color=value_option,
+    color_continuous_scale="RdBu",
+    color_continuous_midpoint=df[value_option].mean(),
+    title=f"Sunburst Chart - {value_option} theo ngành, cấp độ công việc và khởi nghiệp"
 )
-fig.update_traces(textinfo="label+percent parent")
 
+# Hiển thị biểu đồ
 st.plotly_chart(fig, use_container_width=True)
+
+# Hiển thị bảng dữ liệu (tuỳ chọn)
+with st.expander("📊 Xem dữ liệu gốc"):
+    st.dataframe(df)
