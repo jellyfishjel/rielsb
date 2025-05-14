@@ -17,7 +17,7 @@ st.markdown("Phân tích mối liên hệ giữa **giới tính**, **cấp bậc
 # Tạo biểu đồ sunburst
 fig = px.sunburst(
     df,
-    path=["Gender", "Current_Job_Level", "Field_of_Study"],
+    path=["Current_Job_Level", "Field_of_Study"],
     values=None,  # Không cộng dồn — màu thể hiện giá trị trung bình
     color="Starting_Salary",
     color_continuous_scale="Turbo",
