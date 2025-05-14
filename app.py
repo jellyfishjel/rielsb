@@ -3,25 +3,39 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Interactive Pie Chart", layout="centered")
+# Đọc dữ liệu
+@st.cache_data
+def load_data():
+    df = pd.read_excel("education_career_success.xlsx")
+    return df
 
-st.title("📊 Biểu đồ tròn tương tác từ dữ liệu giáo dục và nghề nghiệp")
+df = load_data()
 
-# Đọc dữ liệu từ file Excel
-df = pd.read_excel("education_career_success.xlsx")
+st.title("🎓📈 Career Outcomes Sunburst Explorer")
+st.markdown("Phân tích mối liên hệ giữa **ngành học**, **cấp bậc công việc**, **khởi nghiệp** và **mức lương khởi điểm** hoặc **mức độ hài lòng nghề nghiệp**.")
 
-# Các cột dạng phân loại có thể chọn
-categorical_cols = ["Field_of_Study", "Gender", "Current_Job_Level", "Entrepreneurship"]
+# Lựa chọn giá trị đo
+value_option = st.selectbox(
+    "Chọn chỉ số để hiển thị:",
+    ["Starting_Salary", "Career_Satisfaction"]
+)
 
-# Cho người dùng chọn cột
-selected_col = st.selectbox("Chọn cột để vẽ biểu đồ tròn:", categorical_cols)
+# Tạo biểu đồ sunburst
+fig = px.sunburst(
+    df,
+    path=["Field_of_Study", "Current_Job_Level", "Entrepreneurship"],
+    values=None,  # Không cộng, ta dùng avg ở màu
+    color=value_option,
+    color_continuous_scale="RdBu",
+    color_continuous_midpoint=df[value_option].mean(),
+    title=f"Sunburst Chart - {value_option} theo ngành, cấp độ công việc và khởi nghiệp"
+)
 
-# Đếm tần suất từng giá trị
-counts = df[selected_col].value_counts().reset_index()
-counts.columns = [selected_col, "Count"]
+fig.update_traces(maxdepth=2)
 
-# Vẽ biểu đồ với Plotly
-fig = px.pie(counts, names=selected_col, values="Count", title=f"Phân bố theo '{selected_col}'")
-fig.update_traces(textinfo='percent+label')
-
+# Hiển thị biểu đồ
 st.plotly_chart(fig, use_container_width=True)
+
+# Hiển thị bảng dữ liệu (tuỳ chọn)
+with st.expander("📊 Xem dữ liệu gốc"):
+    st.dataframe(df)
