@@ -14,22 +14,18 @@ df = load_data()
 st.title("🎓📈 Gender & Career Path Sunburst")
 st.markdown("Phân tích mối liên hệ giữa **giới tính**, **cấp bậc công việc**, **ngành học** và **mức lương khởi điểm**.")
 
-# Tạo biểu đồ sunburst
+# Thêm cột đếm để làm giá trị cho biểu đồ phần trăm
+df["Count"] = 1
+
+# Tạo biểu đồ sunburst theo phần trăm (tỷ lệ phân phối)
 fig = px.sunburst(
     df,
     path=["Gender", "Current_Job_Level", "Field_of_Study"],
-    values=None,  # Không cộng dồn — màu thể hiện giá trị trung bình
-    color="Starting_Salary",
-    color_continuous_scale="RdBu",
-    color_continuous_midpoint=df["Starting_Salary"].mean(),
-    title="Sunburst Chart - Starting Salary theo Giới tính, Cấp bậc Công việc và Ngành học"
+    values="Count",  # Dựa trên số lượng
+    title="Sunburst Chart - Phân phối theo Giới tính, Cấp bậc Công việc và Ngành học"
 )
 
 fig.update_traces(maxdepth=2)
 
 # Hiển thị biểu đồ
 st.plotly_chart(fig, use_container_width=True)
-
-# Hiển thị bảng dữ liệu (tuỳ chọn)
-with st.expander("📊 Xem dữ liệu gốc"):
-    st.dataframe(df)
