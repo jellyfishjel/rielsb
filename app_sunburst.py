@@ -17,11 +17,12 @@ df["Count"] = 1
 st.title("🎓📊 Gender & Career Path Sunburst")
 st.markdown("Phân tích **tỷ lệ phân phối** theo **giới tính**, **cấp bậc công việc** và **ngành học**.")
 
-# Tạo biểu đồ sunburst theo tỷ lệ phân phối
 fig = px.sunburst(
     df,
     path=["Gender", "Current_Job_Level", "Field_of_Study"],
-    values="Count",  # Dùng số lượng để tính tỷ lệ
+    values="Count",
+    color="Gender",  # Dựa theo Gender để tô màu
+    color_discrete_sequence=px.colors.qualitative.Pastel,
     title="Sunburst Chart - Phân phối theo Giới tính, Cấp bậc Công việc và Ngành học"
 )
 
