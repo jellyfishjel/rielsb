@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from plotly.colors import diverging
 
 # Title
 st.title("Sunburst Chart by Field with RdBu Color Coding")
@@ -28,31 +27,30 @@ if uploaded_file is not None:
 
         df['Salary_Group'] = df['Starting_Salary'].apply(categorize_salary)
 
+        # Define fixed numerical codes for salary levels
+        salary_map = {'<30K': 0, '30K–50K': 1, '50K–70K': 2, '70K+': 3}
+        df['Salary_Code'] = df['Salary_Group'].map(salary_map)
+
         # Group data
-        sunburst_data = df.groupby(['Entrepreneurship', 'Field_of_Study', 'Salary_Group']).size().reset_index(name='Count')
+        sunburst_data = df.groupby(['Entrepreneurship', 'Field_of_Study', 'Salary_Group', 'Salary_Code']).size().reset_index(name='Count')
 
         # Labels
         sunburst_data['Entrepreneurship_Label'] = sunburst_data['Entrepreneurship']
         sunburst_data['Field_Label'] = sunburst_data['Field_of_Study']
         sunburst_data['Salary_Label'] = sunburst_data['Salary_Group']
-        sunburst_data['Color_Group'] = sunburst_data['Field_of_Study']
 
-        # Color mapping
-        unique_fields = sunburst_data['Field_of_Study'].unique()
-        rd_bu_palette = diverging.RdBu[::-1]
-        color_map = {field: rd_bu_palette[i % len(rd_bu_palette)] for i, field in enumerate(unique_fields)}
+        # Color by salary code to maintain consistent colors across all fields
+        sunburst_data['ColorValue'] = sunburst_data['Salary_Code']
 
         # Plot
         fig = px.sunburst(
             sunburst_data,
             path=['Entrepreneurship_Label', 'Field_Label', 'Salary_Label'],
             values='Count',
-            color='Color_Group',  # Mỗi ngành có một màu riêng
-            color_discrete_map=color_map,
-            title='Entrepreneurship → Field → Salary (Color by Field using RdBu palette)'
+            color='ColorValue',  # Color by numerical salary group
+            color_continuous_scale=px.colors.diverging.RdBu[::-1],
+            title='Entrepreneurship → Field → Salary (Color by Salary Group using RdBu scale)'
         )
 
         fig.update_traces(maxdepth=2, branchvalues="remainder")
-
-
         st.plotly_chart(fig)
