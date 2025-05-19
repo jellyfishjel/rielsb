@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # Title
-st.title("Sunburst Chart with % Coloring (Yes/No included)")
+st.title("Sunburst Chart by Field with RdBu Color Scale")
 
 # Upload file
 uploaded_file = st.file_uploader("Upload the Excel file", type="xlsx")
@@ -27,35 +27,36 @@ if uploaded_file is not None:
 
         df['Salary_Group'] = df['Starting_Salary'].apply(categorize_salary)
 
-        # Group and calculate count
+        # Group and count
         sunburst_data = df.groupby(['Entrepreneurship', 'Field_of_Study', 'Salary_Group']).size().reset_index(name='Count')
 
-        # Total count for percentage calculation
-        total = sunburst_data['Count'].sum()
-        sunburst_data['Percentage'] = (sunburst_data['Count'] / total * 100).round(2)
+        # Label hierarchy
+        sunburst_data['Entrepreneurship_Label'] = sunburst_data['Entrepreneurship']
+        sunburst_data['Field_Label'] = sunburst_data['Field_of_Study']
+        sunburst_data['Salary_Label'] = sunburst_data['Salary_Group']
 
-        # Labels with percentage
-        sunburst_data['Entrepreneurship_Label'] = sunburst_data['Entrepreneurship'] + ' (' + (
-            sunburst_data.groupby('Entrepreneurship')['Count'].transform(lambda x: round(x.sum() / total * 100, 1)).astype(str)
-        ) + '%)'
+        # Dùng Field_of_Study để tô màu (dù là không nằm trong path)
+        sunburst_data['Color_Group'] = sunburst_data['Field_of_Study']
 
-        sunburst_data['Field_Label'] = sunburst_data['Field_of_Study'] + '\n' + (
-            sunburst_data.groupby(['Entrepreneurship', 'Field_of_Study'])['Count'].transform(lambda x: round(x.sum() / total * 100, 1)).astype(str)
-        ) + '%'
+        # Lấy danh sách ngành duy nhất
+        unique_fields = sunburst_data['Field_of_Study'].unique()
 
-        sunburst_data['Salary_Label'] = sunburst_data['Salary_Group'] + '\n' + sunburst_data['Percentage'].astype(str) + '%'
+        # Tạo bảng màu riêng từ RdBu (discrete)
+        from plotly.colors import diverging
+        rd_bu_palette = diverging.RdBu[::-1]  # Đảo ngược nếu thích xanh dương đầu
+        color_map = {field: rd_bu_palette[i % len(rd_bu_palette)] for i, field in enumerate(unique_fields)}
 
-        # Draw sunburst chart
+        # Gán màu tương ứng
+        sunburst_data['Color'] = sunburst_data['Color_Group'].map(color_map)
+
+        # Vẽ biểu đồ
         fig = px.sunburst(
             sunburst_data,
             path=['Entrepreneurship_Label', 'Field_Label', 'Salary_Label'],
-            values='Count',  # <-- quan trọng: dùng Count để logic phân cấp đúng
-            color='Percentage',  # tô màu theo % toàn cục
-            color_continuous_scale='RdBu',
-            title='Entrepreneurship → Field → Salary (Color = % of Total)'
+            values='Count',
+            color='Color_Group',
+            color_discrete_map=color_map,
+            title='Sunburst Chart by Field (Colored by Field using RdBu scale)'
         )
-
-        fig.update_coloraxes(cmin=0, cmax=100, colorbar_title="Percentage (%)")
-        fig.update_traces(maxdepth=2, branchvalues="total")
 
         st.plotly_chart(fig)
