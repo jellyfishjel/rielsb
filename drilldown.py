@@ -47,12 +47,12 @@ if uploaded_file is not None:
             sunburst_data,
             path=['Entrepreneurship_Label', 'Field_Label', 'Salary_Label'],
             values='Count',
-            color='Color_Group',
+            color='Color_Group',  # Mỗi ngành có một màu riêng
             color_discrete_map=color_map,
             title='Entrepreneurship → Field → Salary (Color by Field using RdBu palette)'
         )
 
-        # Only show first 2 levels
-        fig.update_traces(maxdepth=2)
+        fig.update_traces(maxdepth=2, branchvalues="remainder")
+
 
         st.plotly_chart(fig)
