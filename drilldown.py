@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from plotly.colors import diverging
 
 # Title
-st.title("Sunburst Chart by Field with RdBu Color Scale")
+st.title("Sunburst Chart by Field with RdBu Color Coding")
 
 # Upload file
 uploaded_file = st.file_uploader("Upload the Excel file", type="xlsx")
@@ -27,36 +28,18 @@ if uploaded_file is not None:
 
         df['Salary_Group'] = df['Starting_Salary'].apply(categorize_salary)
 
-        # Group and count
+        # Group data
         sunburst_data = df.groupby(['Entrepreneurship', 'Field_of_Study', 'Salary_Group']).size().reset_index(name='Count')
 
-        # Label hierarchy
+        # Custom labels
         sunburst_data['Entrepreneurship_Label'] = sunburst_data['Entrepreneurship']
         sunburst_data['Field_Label'] = sunburst_data['Field_of_Study']
         sunburst_data['Salary_Label'] = sunburst_data['Salary_Group']
 
-        # Dùng Field_of_Study để tô màu (dù là không nằm trong path)
+        # Color assignment: one color per Field_of_Study
+        unique_fields = sunburst_data['Field_of_Study'].unique()
+        rd_bu_palette = diverging.RdBu[::-1]  # Optional: reverse for blue-red order
+        color_map = {field: rd_bu_palette[i % len(rd_bu_palette)] for i, field in enumerate(unique_fields)}
         sunburst_data['Color_Group'] = sunburst_data['Field_of_Study']
 
-        # Lấy danh sách ngành duy nhất
-        unique_fields = sunburst_data['Field_of_Study'].unique()
-
-        # Tạo bảng màu riêng từ RdBu (discrete)
-        from plotly.colors import diverging
-        rd_bu_palette = diverging.RdBu[::-1]  # Đảo ngược nếu thích xanh dương đầu
-        color_map = {field: rd_bu_palette[i % len(rd_bu_palette)] for i, field in enumerate(unique_fields)}
-
-        # Gán màu tương ứng
-        sunburst_data['Color'] = sunburst_data['Color_Group'].map(color_map)
-
-        # Vẽ biểu đồ
-        fig = px.sunburst(
-            sunburst_data,
-            path=['Entrepreneurship_Label', 'Field_Label', 'Salary_Label'],
-            values='Count',
-            color='Color_Group',
-            color_discrete_map=color_map,
-            title='Sunburst Chart by Field (Colored by Field using RdBu scale)'
-        )
-
-        st.plotly_chart(fig)
+        # Plot
