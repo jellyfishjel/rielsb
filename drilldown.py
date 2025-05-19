@@ -1,68 +1,76 @@
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
+# Load raw data
+df = pd.read_excel("education_career_success.xlsx", sheet_name="education_career_success")
 
-# 1. Load the data
-df = pd.read_excel(r"C:/Users/Admin/Desktop/VGU/Math/phase 4/education_career_success.xlsx")
+# Define hierarchy and metrics
+levels = ['Current_Job_Level', 'Field_of_Study', 'Gender']
+value_column = 'Job_Offers'
+color_columns = ['Soft_Skills_Score', 'Networking_Score']
 
+# Build hierarchical dataframe
+def build_hierarchical_dataframe(df, levels, value_column, color_columns=None):
+    df_list = []
+    for i, level in enumerate(levels):
+        df_tree = pd.DataFrame(columns=['id', 'parent', 'value', 'color'])
+        dfg = df.groupby(levels[i:]).sum(numeric_only=True).reset_index()
+        df_tree['id'] = dfg[level]
+        df_tree['parent'] = dfg[levels[i+1]] if i < len(levels) - 1 else 'total'
+        df_tree['value'] = dfg[value_column]
+        df_tree['color'] = dfg[color_columns[0]] / dfg[color_columns[1]]
+        df_list.append(df_tree)
 
-# 2. Define job levels and color palette
-job_level_order = ['Entry', 'Mid', 'Senior', 'Executive']
-custom_palette = {
-    'Entry': '#8fd5ff',
-    'Mid': '#fccc38',
-    'Senior': '#d81159',
-    'Executive': '#cbf275'
-}
+    # Add root
+    total = pd.Series(dict(
+        id='total',
+        parent='',
+        value=df[value_column].sum(),
+        color=df[color_columns[0]].sum() / df[color_columns[1]].sum()
+    ), name=0)
+    df_all_trees = pd.concat(df_list + [total.to_frame().T], ignore_index=True)
+    return df_all_trees
 
+# Build tree
+df_all_trees = build_hierarchical_dataframe(df, levels, value_column, color_columns)
+average_score = df_all_trees["color"].mean()
 
-# 3. Create violin plot with transparency
-plt.figure(figsize=(10, 6))
-sns.violinplot(
-    data=df,
-    x='Current_Job_Level',
-    y='University_GPA',
-    order=job_level_order,
-    palette=custom_palette,
-    cut=2,
-    inner=None,
-    bw=0.2,
-    scale='width',
-    linewidth=1.2,
-    alpha=0.7  # Violin mờ hơn
+# Make sunburst with 2 subplots
+fig = make_subplots(rows=1, cols=2, specs=[[{"type": "domain"}, {"type": "domain"}]])
+
+# Full hierarchy
+fig.add_trace(go.Sunburst(
+    labels=df_all_trees['id'],
+    parents=df_all_trees['parent'],
+    values=df_all_trees['value'],
+    branchvalues='total',
+    marker=dict(
+        colors=df_all_trees['color'],
+        colorscale='RdBu',
+        cmid=average_score
+    ),
+    hovertemplate='<b>%{label}</b><br>Job Offers: %{value}<br>Ratio: %{color:.2f}',
+    name=''
+), row=1, col=1)
+
+# Limited depth version
+fig.add_trace(go.Sunburst(
+    labels=df_all_trees['id'],
+    parents=df_all_trees['parent'],
+    values=df_all_trees['value'],
+    branchvalues='total',
+    marker=dict(
+        colors=df_all_trees['color'],
+        colorscale='RdBu',
+        cmid=average_score
+    ),
+    hovertemplate='<b>%{label}</b><br>Job Offers: %{value}<br>Ratio: %{color:.2f}',
+    maxdepth=2
+), row=1, col=2)
+
+fig.update_layout(
+    title_text="Sunburst Chart: Job Level → Field → Gender (Color = Soft Skills / Networking)",
+    margin=dict(t=10, b=10, l=10, r=10)
 )
 
-
-# 4. Overlay a boxplot with same colors
-sns.boxplot(
-    data=df,
-    x='Current_Job_Level',
-    y='University_GPA',
-    order=job_level_order,
-    width=0.15,
-    showcaps=True,
-    palette=custom_palette,
-    boxprops={'edgecolor': 'black', 'linewidth': 1.5},
-    whiskerprops={'color': 'black', 'linewidth': 1.5},
-    medianprops={'color': 'black', 'linewidth': 1.5},
-    flierprops={'markerfacecolor': 'black', 'markeredgecolor': 'black'},
-    showfliers=False
-)
-
-
-# 5. Customize the plot appearance
-plt.title("Violin Chart of University GPA by Job Level", fontsize=14, fontweight='bold')
-plt.xlabel("Job Level", fontsize=12)
-plt.ylabel("University GPA", fontsize=12)
-plt.xticks(fontsize=18)
-
-
-# Make grid boxes bigger by reducing number of ticks on y-axis
-min_gpa = df['University_GPA'].min()
-max_gpa = df['University_GPA'].max()
-plt.yticks(np.arange(round(min_gpa, 1), round(max_gpa + 0.1, 1), 0.5), fontsize=18)
-
-
-# Add thinner grid lines
+fig.show()
