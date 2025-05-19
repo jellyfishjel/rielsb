@@ -31,16 +31,16 @@ if uploaded_file is not None:
         # Group data
         sunburst_data = df.groupby(['Entrepreneurship', 'Field_of_Study', 'Salary_Group']).size().reset_index(name='Count')
 
-        # Custom labels
+        # Labels
         sunburst_data['Entrepreneurship_Label'] = sunburst_data['Entrepreneurship']
         sunburst_data['Field_Label'] = sunburst_data['Field_of_Study']
         sunburst_data['Salary_Label'] = sunburst_data['Salary_Group']
-
-        # Color assignment: one color per Field_of_Study
-        unique_fields = sunburst_data['Field_of_Study'].unique()
-        rd_bu_palette = diverging.RdBu[::-1]  # Optional: reverse for blue-red order
-        color_map = {field: rd_bu_palette[i % len(rd_bu_palette)] for i, field in enumerate(unique_fields)}
         sunburst_data['Color_Group'] = sunburst_data['Field_of_Study']
+
+        # Color mapping
+        unique_fields = sunburst_data['Field_of_Study'].unique()
+        rd_bu_palette = diverging.RdBu[::-1]
+        color_map = {field: rd_bu_palette[i % len(rd_bu_palette)] for i, field in enumerate(unique_fields)}
 
         # Plot
         fig = px.sunburst(
@@ -51,5 +51,8 @@ if uploaded_file is not None:
             color_discrete_map=color_map,
             title='Entrepreneurship → Field → Salary (Color by Field using RdBu palette)'
         )
+
+        # Only show first 2 levels
+        fig.update_traces(maxdepth=2)
 
         st.plotly_chart(fig)
