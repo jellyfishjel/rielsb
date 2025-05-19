@@ -40,4 +40,22 @@ if uploaded_file is not None:
         ) + '%)'
 
         sunburst_data['Field_Label'] = sunburst_data['Field_of_Study'] + '\n' + (
-            sunburst_data.groupby(['Entrepreneurship', 'Field_of_Study'])['Count]()_
+            sunburst_data.groupby(['Entrepreneurship', 'Field_of_Study'])['Count'].transform(lambda x: round(x.sum() / total * 100, 1)).astype(str)
+        ) + '%'
+
+        sunburst_data['Salary_Label'] = sunburst_data['Salary_Group'] + '\n' + sunburst_data['Percentage'].astype(str) + '%'
+
+        # Draw sunburst chart
+        fig = px.sunburst(
+            sunburst_data,
+            path=['Entrepreneurship_Label', 'Field_Label', 'Salary_Label'],
+            values='Count',  # <-- quan trọng: dùng Count để logic phân cấp đúng
+            color='Percentage',  # tô màu theo % toàn cục
+            color_continuous_scale='RdBu',
+            title='Entrepreneurship → Field → Salary (Color = % of Total)'
+        )
+
+        fig.update_coloraxes(cmin=0, cmax=100, colorbar_title="Percentage (%)")
+        fig.update_traces(maxdepth=2, branchvalues="total")
+
+        st.plotly_chart(fig)
