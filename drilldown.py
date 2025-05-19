@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 # Title
-st.title("Sunburst Chart by Field with RdBu Color Coding")
+st.title("Sunburst Chart: Entrepreneurship → Field → Salary")
 
 # Upload file
 uploaded_file = st.file_uploader("Upload the Excel file", type="xlsx")
@@ -27,29 +27,31 @@ if uploaded_file is not None:
 
         df['Salary_Group'] = df['Starting_Salary'].apply(categorize_salary)
 
-        # Define fixed numerical codes for salary levels
-        salary_map = {'<30K': 0, '30K–50K': 1, '50K–70K': 2, '70K+': 3}
-        df['Salary_Code'] = df['Salary_Group'].map(salary_map)
-
         # Group data
-        sunburst_data = df.groupby(['Entrepreneurship', 'Field_of_Study', 'Salary_Group', 'Salary_Code']).size().reset_index(name='Count')
+        sunburst_data = df.groupby(['Entrepreneurship', 'Field_of_Study', 'Salary_Group']).size().reset_index(name='Count')
 
-        # Labels
-        sunburst_data['Entrepreneurship_Label'] = sunburst_data['Entrepreneurship']
-        sunburst_data['Field_Label'] = sunburst_data['Field_of_Study']
-        sunburst_data['Salary_Label'] = sunburst_data['Salary_Group']
+        # Tổng số lượng để tính phần trăm
+        total_count = sunburst_data['Count'].sum()
+        sunburst_data['Percentage'] = (sunburst_data['Count'] / total_count * 100).round(2)
 
-        # Color by salary code to maintain consistent colors across all fields
-        sunburst_data['ColorValue'] = sunburst_data['Salary_Code']
+        # Gán màu cho Yes/No bằng giá trị số
+        color_map = {'Yes': 1, 'No': -1}
+        sunburst_data['ColorValue'] = sunburst_data['Entrepreneurship'].map(color_map)
 
         # Plot
         fig = px.sunburst(
             sunburst_data,
-            path=['Entrepreneurship_Label', 'Field_Label', 'Salary_Label'],
+            path=['Entrepreneurship', 'Field_of_Study', 'Salary_Group'],
             values='Count',
-            color='ColorValue',  # Color by numerical salary group
+            color='ColorValue',
             color_continuous_scale=px.colors.diverging.RdBu[::-1],
-            title='Entrepreneurship → Field → Salary (Color by Salary Group using RdBu scale)'
+            title='Entrepreneurship → Field → Salary (Color by Yes/No)',
+            custom_data=['Count', 'Percentage']
+        )
+
+        # Hiển thị số phần trăm trong hover
+        fig.update_traces(
+            hovertemplate='<b>%{label}</b><br>Count: %{customdata[0]}<br>Percentage: %{customdata[1]}%'
         )
 
         fig.update_traces(maxdepth=2, branchvalues="remainder")
