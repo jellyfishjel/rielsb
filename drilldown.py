@@ -43,3 +43,13 @@ if uploaded_file is not None:
         sunburst_data['Color_Group'] = sunburst_data['Field_of_Study']
 
         # Plot
+        fig = px.sunburst(
+            sunburst_data,
+            path=['Entrepreneurship_Label', 'Field_Label', 'Salary_Label'],
+            values='Count',
+            color='Color_Group',
+            color_discrete_map=color_map,
+            title='Entrepreneurship → Field → Salary (Color by Field using RdBu palette)'
+        )
+
+        st.plotly_chart(fig)
